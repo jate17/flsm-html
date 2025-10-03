@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FLSM Toolkit</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    html, body { background: #0a0f0a; }
+    .neon { text-shadow: 0 0 6px #22c55e88, 0 0 12px #22c55e55, 0 0 24px #22c55e33; }
+    .card {
+      background: linear-gradient(180deg, rgba(8,12,8,0.9), rgba(8,14,8,0.9));
+      border: 1px solid rgba(34,197,94,0.15);
+      box-shadow: 0 0 0 1px rgba(34,197,94,0.05), 0 0 24px rgba(34,197,94,0.08) inset;
+    }
+    .btn { transition: transform .06s ease, box-shadow .2s ease; box-shadow: 0 0 0 1px rgba(34,197,94,0.2), 0 6px 20px rgba(34,197,94,0.12); }
+    .btn:hover { transform: translateY(-1px); }
+    .btn:active { transform: translateY(0px) scale(.99); }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+    /* neon cyber link */
+.link-cyber {
+  position: relative;
+  color: #34d399; /* green-400 */
+  font-weight: 600;
+  text-decoration: none;
+  transition: color .2s ease, text-shadow .2s ease, transform .08s ease;
+  text-shadow: 0 0 6px rgba(52,211,153,.6), 0 0 14px rgba(52,211,153,.35);
+  border-radius: .25rem; /* for focus ring */
+}
+.link-cyber::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  height: 2px;
+  width: 100%;
+  background: linear-gradient(90deg, rgba(52,211,153,0) 0%, rgba(52,211,153,1) 20%, rgba(52,211,153,1) 80%, rgba(52,211,153,0) 100%);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform .25s ease;
+  box-shadow: 0 0 10px rgba(52,211,153,.5);
+}
+.link-cyber:hover {
+  color: #86efac; /* green-300 */
+  text-shadow: 0 0 10px rgba(134,239,172,.9), 0 0 24px rgba(52,211,153,.45);
+  transform: translateY(-1px);
+}
+.link-cyber:hover::after { transform: scaleX(1); }
+.link-cyber:active { transform: translateY(0) scale(.98); }
+
+/* accessibility: focus ring */
+.link-cyber:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(34,197,94,.35), 0 0 0 6px rgba(34,197,94,.18);
+}
+
+  </style>
+</head>
+<body class="text-green-200 selection:bg-green-500/30 selection:text-green-100">
+
+  <header class="max-w-6xl mx-auto px-4 pt-8 pb-6">
+    <h1 class="text-3xl md:text-4xl font-extrabold text-green-400 neon mono tracking-wide">
+      ▮ FLSM Toolkit <span class="text-green-300/70"></span>
+    </h1>
+<p class="text-sm text-green-300/60 mt-1">
+  Made by
+  <a href="https://github.com/jate17"
+     target="_blank"
+     rel="noopener noreferrer"
+     class="link-cyber">
+    Jate17
+  </a>
+  with help from ChatGPT
+</p>
+
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 pb-24 space-y-8">
+
+    <!-- Sezione 1 -->
+    <section class="card rounded-2xl p-5">
+      <div class="flex items-center justify-between gap-3">
+        <h2 class="text-xl font-bold text-green-300 mono">1) Info Subnet</h2>
+        <label class="flex items-center gap-2 text-green-300/80 text-sm">
+          <input id="stepsBaseToggle" type="checkbox" class="accent-green-500" />
+          <span class="mono">Mostra procedura</span>
+        </label>
+      </div>
+
+      <div class="grid md:grid-cols-4 gap-3 mt-4">
+        <div>
+          <label class="block text-xs text-green-300/70 mono">IP</label>
+          <input id="baseIp" class="w-full rounded-lg bg-black/50 border border-green-900/40 px-3 py-2 mono" value="200.110.12.0">
+        </div>
+        <div>
+          <label class="block text-xs text-green-300/70 mono">Prefisso</label>
+          <input id="basePrefix" type="number" min="0" max="32" class="w-full rounded-lg bg-black/50 border border-green-900/40 px-3 py-2 mono" value="27">
+        </div>
+        <div class="md:col-span-2 flex items-end">
+          <button id="btnBase" class="btn w-full rounded-lg bg-green-600 hover:bg-green-500 text-green-50 font-semibold px-4 py-2 mono">Calcola</button>
+        </div>
+      </div>
+
+      <div id="baseError" class="hidden mt-3 text-sm text-red-400 mono"></div>
+
+      <div class="grid md:grid-cols-3 gap-4 mt-5">
+        <div class="rounded-xl bg-black/40 border border-green-900/40 p-4">
+          <h3 class="text-sm font-bold text-green-300 mono mb-2">Riepilogo</h3>
+          <div id="baseSummary" class="text-sm mono space-y-1 text-green-200/90"></div>
+        </div>
+        <div class="rounded-xl bg-black/40 border border-green-900/40 p-4">
+          <h3 class="text-sm font-bold text-green-300 mono mb-2">Range Host</h3>
+          <div id="baseRange" class="text-sm mono text-green-200/90"></div>
+        </div>
+        <div class="rounded-xl bg-black/40 border border-green-900/40 p-4">
+          <h3 class="text-sm font-bold text-green-300 mono mb-2">Maschera</h3>
+          <div id="baseMask" class="text-sm mono text-green-200/90"></div>
+        </div>
+      </div>
+
+      <details id="baseStepsWrap" class="mt-4 hidden">
+        <summary class="cursor-pointer text-green-300 mono">Procedura dettagliata</summary>
+        <pre id="baseSteps" class="mt-2 p-3 rounded-lg bg-black/60 border border-green-900/40 text-green-300/90 text-xs mono overflow-auto"></pre>
+      </details>
+    </section>
+
+    <!-- Sezione 2 -->
+    <section class="card rounded-2xl p-5">
+      <div class="flex items-center justify-between gap-3">
+        <h2 class="text-xl font-bold text-green-300 mono">2) FLSM • Suddividi per numero di sottoreti</h2>
+        <label class="flex items-center gap-2 text-green-300/80 text-sm">
+          <input id="stepsSubToggle" type="checkbox" class="accent-green-500" />
+          <span class="mono">Mostra procedura</span>
+        </label>
+      </div>
+
+      <div class="grid md:grid-cols-5 gap-3 mt-4">
+        <div>
+          <label class="block text-xs text-green-300/70 mono">Rete di partenza (IP)</label>
+          <input id="subBaseIp" class="w-full rounded-lg bg-black/50 border border-green-900/40 px-3 py-2 mono" value="200.110.12.0">
+        </div>
+        <div>
+          <label class="block text-xs text-green-300/70 mono">Prefisso base</label>
+          <input id="subBasePrefix" type="number" min="0" max="32" class="w-full rounded-lg bg-black/50 border border-green-900/40 px-3 py-2 mono" value="24">
+        </div>
+        <div>
+          <label class="block text-xs text-green-300/70 mono">Sottoreti richieste</label>
+          <input id="subCount" type="number" min="1" class="w-full rounded-lg bg-black/50 border border-green-900/40 px-3 py-2 mono" value="12">
+        </div>
+        <div class="md:col-span-2 flex items-end">
+          <button id="btnSub" class="btn w-full rounded-lg bg-green-600 hover:bg-green-500 text-green-50 font-semibold px-4 py-2 mono">Suddividi</button>
+        </div>
+      </div>
+
+      <div id="subError" class="hidden mt-3 text-sm text-red-400 mono"></div>
+      <div id="subHead" class="mt-5 text-sm text-green-300/80 mono"></div>
+      <div class="mt-3 overflow-auto">
+        <table class="w-full text-sm mono border-separate border-spacing-y-2">
+          <thead class="text-green-300">
+            <tr>
+              <th class="text-left">#</th>
+              <th class="text-left">Network</th>
+              <th class="text-left">Prefix</th>
+              <th class="text-left">Broadcast</th>
+              <th class="text-left">First</th>
+              <th class="text-left">Last</th>
+              <th class="text-left">Usable</th>
+            </tr>
+          </thead>
+          <tbody id="subTable"></tbody>
+        </table>
+      </div>
+
+      <details id="subStepsWrap" class="mt-4 hidden">
+        <summary class="cursor-pointer text-green-300 mono">Procedura dettagliata</summary>
+        <pre id="subSteps" class="mt-2 p-3 rounded-lg bg-black/60 border border-green-900/40 text-green-300/90 text-xs mono overflow-auto"></pre>
+      </details>
+    </section>
+
+    <!-- Sezione 3 -->
+    <section class="card rounded-2xl p-5">
+      <h2 class="text-xl font-bold text-green-300 mono">3) Prefisso da host & N-esimo host</h2>
+
+      <div class="grid md:grid-cols-5 gap-3 mt-4">
+        <div>
+          <label class="block text-xs text-green-300/70 mono">Host usabili per subnet</label>
+          <input id="phHosts" type="number" min="0" class="w-full rounded-lg bg-black/50 border border-green-900/40 px-3 py-2 mono" value="14">
+        </div>
+        <div class="md:col-span-2 flex items-end">
+          <button id="btnPH" class="btn w-full rounded-lg bg-green-600 hover:bg-green-500 text-green-50 font-semibold px-4 py-2 mono">Calcola prefisso</button>
+        </div>
+        <div class="md:col-span-2 grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs text-green-300/70 mono">N-esima subnet</label>
+            <input id="nthSubnet" type="number" min="1" class="w-full rounded-lg bg-black/50 border border-green-900/40 px-3 py-2 mono" value="7">
+          </div>
+          <div>
+            <label class="block text-xs text-green-300/70 mono">N-esimo host</label>
+            <input id="nthHost" type="number" min="1" class="w-full rounded-lg bg-black/50 border border-green-900/40 px-3 py-2 mono" value="3">
+          </div>
+        </div>
+      </div>
+
+      <div class="grid md:grid-cols-5 gap-3 mt-4">
+        <div>
+          <label class="block text-xs text-green-300/70 mono">Rete base (IP)</label>
+          <input id="nthBaseIp" class="w-full rounded-lg bg-black/50 border border-green-900/40 px-3 py-2 mono" value="200.110.12.0">
+        </div>
+        <div>
+          <label class="block text-xs text-green-300/70 mono">Prefisso base</label>
+          <input id="nthBasePrefix" type="number" min="0" max="32" class="w-full rounded-lg bg-black/50 border border-green-900/40 px-3 py-2 mono" value="24">
+        </div>
+        <div>
+          <label class="block text-xs text-green-300/70 mono">Prefisso FLSM (opz.)</label>
+          <input id="nthNewPrefix" type="number" min="0" max="32" class="w-full rounded-lg bg-black/50 border border-green-900/40 px-3 py-2 mono" placeholder="28">
+        </div>
+        <div class="md:col-span-2 flex items-end">
+          <button id="btnNth" class="btn w-full rounded-lg bg-green-600 hover:bg-green-500 text-green-50 font-semibold px-4 py-2 mono">Trova host</button>
+        </div>
+      </div>
+
+      <div id="nthError" class="hidden mt-3 text-sm text-red-400 mono"></div>
+
+      <div class="mt-4 grid md:grid-cols-3 gap-4">
+        <div class="rounded-xl bg-black/40 border border-green-900/40 p-4">
+          <h3 class="text-sm font-bold text-green-300 mono mb-2">Prefisso consigliato</h3>
+          <div id="phOut" class="text-sm mono text-green-200/90"></div>
+        </div>
+        <div class="rounded-xl bg-black/40 border border-green-900/40 p-4 md:col-span-2">
+          <h3 class="text-sm font-bold text-green-300 mono mb-2">Risultato N-esimo host</h3>
+          <div id="nthOut" class="text-sm mono text-green-200/90"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Sezione 4 -->
+    <section class="card rounded-2xl p-5">
+      <div class="flex items-center justify-between gap-3">
+        <h2 class="text-xl font-bold text-green-300 mono">4) Intervallo → Subnet / Cover CIDR</h2>
+        <label class="flex items-center gap-2 text-green-300/80 text-sm">
+          <input id="stepsRangeToggle" type="checkbox" class="accent-green-500" />
+          <span class="mono">Mostra procedura</span>
+        </label>
+      </div>
+
+      <div class="grid md:grid-cols-5 gap-3 mt-4">
+        <div>
+          <label class="block text-xs text-green-300/70 mono">Inizio</label>
+          <input id="rangeStart" class="w-full rounded-lg bg-black/50 border border-green-900/40 px-3 py-2 mono" value="200.110.12.32">
+        </div>
+        <div>
+          <label class="block text-xs text-green-300/70 mono">Fine</label>
+          <input id="rangeEnd" class="w-full rounded-lg bg-black/50 border border-green-900/40 px-3 py-2 mono" value="200.110.12.63">
+        </div>
+        <div class="md:col-span-3 flex items-end gap-3">
+          <button id="btnExact" class="btn flex-1 rounded-lg bg-green-600 hover:bg-green-500 text-green-50 font-semibold px-4 py-2 mono">Subnet esatta</button>
+          <button id="btnCover" class="btn flex-1 rounded-lg bg-green-700 hover:bg-green-600 text-green-50 font-semibold px-4 py-2 mono">Cover CIDR</button>
+        </div>
+      </div>
+
+      <div id="rangeError" class="hidden mt-3 text-sm text-red-400 mono"></div>
+
+      <div class="mt-4 grid md:grid-cols-2 gap-4">
+        <div class="rounded-xl bg-black/40 border border-green-900/40 p-4">
+          <h3 class="text-sm font-bold text-green-300 mono mb-2">Subnet esatta</h3>
+          <div id="exactOut" class="text-sm mono text-green-200/90"></div>
+          <details id="rangeStepsWrap" class="mt-3 hidden">
+            <summary class="cursor-pointer text-green-300 mono">Procedura dettagliata</summary>
+            <pre id="rangeSteps" class="mt-2 p-3 rounded-lg bg-black/60 border border-green-900/40 text-green-300/90 text-xs mono overflow-auto"></pre>
+          </details>
+        </div>
+        <div class="rounded-xl bg-black/40 border border-green-900/40 p-4">
+          <h3 class="text-sm font-bold text-green-300 mono mb-2">Cover CIDR</h3>
+          <div id="coverOut" class="text-sm mono text-green-200/90"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Sezione 5 -->
+    <section class="card rounded-2xl p-5">
+      <div class="flex items-center justify-between gap-3">
+        <h2 class="text-xl font-bold text-green-300 mono">5) Piano FLSM uniforme</h2>
+        <label class="flex items-center gap-2 text-green-300/80 text-sm">
+          <input id="stepsPlanToggle" type="checkbox" class="accent-green-500" />
+          <span class="mono">Mostra procedura</span>
+        </label>
+      </div>
+
+      <div class="grid md:grid-cols-5 gap-3 mt-4">
+        <div>
+          <label class="block text-xs text-green-300/70 mono">Rete assegnata (IP)</label>
+          <input id="planIp" class="w-full rounded-lg bg-black/50 border border-green-900/40 px-3 py-2 mono" value="130.100.0.0">
+        </div>
+        <div>
+          <label class="block text-xs text-green-300/70 mono">Prefisso assegnato</label>
+          <input id="planBasePrefix" type="number" min="0" max="32" class="w-full rounded-lg bg-black/50 border border-green-900/40 px-3 py-2 mono" value="16">
+        </div>
+        <div>
+          <label class="block text-xs text-green-300/70 mono">Prefisso FLSM</label>
+          <input id="planTargetPrefix" type="number" min="0" max="32" class="w-full rounded-lg bg-black/50 border border-green-900/40 px-3 py-2 mono" value="22">
+        </div>
+        <div class="md:col-span-2 flex items-end">
+          <button id="btnPlan" class="btn w-full rounded-lg bg-green-600 hover:bg-green-500 text-green-50 font-semibold px-4 py-2 mono">Genera piano</button>
+        </div>
+      </div>
+
+      <div id="planError" class="hidden mt-3 text-sm text-red-400 mono"></div>
+      <div id="planHead" class="mt-4 text-sm text-green-300/80 mono"></div>
+      <div class="mt-3 overflow-auto">
+        <table class="w-full text-sm mono border-separate border-spacing-y-2">
+          <thead class="text-green-300">
+            <tr>
+              <th class="text-left">#</th>
+              <th class="text-left">NET-ID</th>
+              <th class="text-left">/Pfx</th>
+              <th class="text-left">MASK</th>
+              <th class="text-left">BROADCAST</th>
+              <th class="text-left">GATEWAY</th>
+              <th class="text-left">Usable</th>
+            </tr>
+          </thead>
+          <tbody id="planTable"></tbody>
+        </table>
+      </div>
+
+      <details id="planStepsWrap" class="mt-4 hidden">
+        <summary class="cursor-pointer text-green-300 mono">Procedura dettagliata</summary>
+        <pre id="planSteps" class="mt-2 p-3 rounded-lg bg-black/60 border border-green-900/40 text-green-300/90 text-xs mono overflow-auto"></pre>
+      </details>
+    </section>
+
+  </main>
+
+  <!-- === JS INLINE (nessun import) === -->
+  <script>
+  /* ====== FLSM-CORE (global: F) ====== */
+  const F = (()=>{
+
+    function ipToInt(ip){
+      const p = ip.trim().split('.').map(Number);
+      if(p.length!==4 || p.some(n=>!Number.isInteger(n)||n<0||n>255)) throw new Error(`IP non valido: ${ip}`);
+      return (((p[0]<<24)>>>0)|(p[1]<<16)|(p[2]<<8)|p[3])>>>0;
+    }
+    function intToIp(u32){ return [(u32>>>24)&255,(u32>>>16)&255,(u32>>>8)&255,u32&255].join('.'); }
+    function popcount(u32){ let v=u32>>>0,c=0; while(v){v&=v-1;c++;} return c; }
+    function maskFromPrefix(prefix){
+      if(!Number.isInteger(prefix)||prefix<0||prefix>32) throw new Error('Prefix fuori range (0..32)');
+      return prefix===0?0:(~0 << (32-prefix))>>>0;
+    }
+    function prefixFromMask(maskIp){
+      const m=ipToInt(maskIp), inv=(~m)>>>0;
+      if(((inv+1)&inv)!==0) throw new Error('Maschera non contigua');
+      return popcount(m);
+    }
+
+    function networkInt(ip,prefix){ return (ipToInt(ip)&maskFromPrefix(prefix))>>>0; }
+    function broadcastInt(ip,prefix){ const m=maskFromPrefix(prefix); return ((ipToInt(ip)&m)|((~m)>>>0))>>>0; }
+    function firstHostInt(n,p){ return p>=31?n:((n+1)>>>0); }
+    function lastHostInt(b,p){ return p>=31?b:((b-1)>>>0); }
+    function totalAddresses(prefix){ const hb=32-prefix; if(hb===0) return 1; if(hb===1) return 2; return 1<<hb; }
+    function usableHosts(prefix){ const hb=32-prefix; if(hb<=1) return 0; return (1<<hb)-2; }
+
+    function subnetInfo(ip, prefix){
+      const net = networkInt(ip,prefix);
+      const bcast = broadcastInt(ip,prefix);
+      return {
+        ip, prefix,
+        mask: intToIp(maskFromPrefix(prefix)),
+        network: intToIp(net),
+        broadcast: intToIp(bcast),
+        firstHost: intToIp(firstHostInt(net,prefix)),
+        lastHost: intToIp(lastHostInt(bcast,prefix)),
+        total: totalAddresses(prefix),
+        usable: usableHosts(prefix),
+      };
+    }
+
+    function prefixForSubnets(basePrefix, neededSubnets){
+      if(neededSubnets<1) throw new Error('neededSubnets deve essere ≥ 1');
+      const extra = Math.ceil(Math.log2(neededSubnets));
+      const p = basePrefix + extra;
+      if(p>32) throw new Error('Prefix risultante > 32');
+      return p;
+    }
+    function prefixForHosts(hostsPerSubnet){
+      if(!Number.isInteger(hostsPerSubnet)||hostsPerSubnet<0) throw new Error('hostsPerSubnet non valido');
+      for(let p=0;p<=32;p++){ if(usableHosts(p)>=hostsPerSubnet) return p; }
+      throw new Error('Impossibile soddisfare il requisito host');
+    }
+
+    function subdivide(netIp, basePrefix, newPrefix){
+      if(newPrefix<basePrefix) throw new Error('newPrefix deve essere ≥ basePrefix');
+      const baseNet = networkInt(netIp, basePrefix);
+      const count = 1 << (newPrefix - basePrefix);
+      const block = 1 << (32 - newPrefix);
+      const res = [];
+      for(let i=0;i<count;i++){
+        const n=(baseNet + i*block)>>>0, b=(n+block-1)>>>0;
+        res.push({
+          index:i+1,
+          network:intToIp(n),
+          broadcast:intToIp(b),
+          prefix:newPrefix,
+          mask:intToIp(maskFromPrefix(newPrefix)),
+          firstHost:intToIp(firstHostInt(n,newPrefix)),
+          lastHost:intToIp(lastHostInt(b,newPrefix)),
+          total:totalAddresses(newPrefix),
+          usable:usableHosts(newPrefix),
+          gateway:intToIp((newPrefix>=31?n:(n+1))>>>0),
+        });
+      }
+      return res;
+    }
+    function nthSubnet(netIp, basePrefix, newPrefix, n1){
+      const all = subdivide(netIp, basePrefix, newPrefix);
+      if(n1<1||n1>all.length) throw new Error('Indice sottorete fuori range');
+      return all[n1-1];
+    }
+    function nthHostInSubnet(subnetNetworkIp, prefix, ordinal1){
+      if(!Number.isInteger(ordinal1)||ordinal1<1) throw new Error('ordinal1 deve essere >= 1');
+      if(prefix>=31) throw new Error('Nessun host usabile per /31 o /32 (classico)');
+      const n=ipToInt(subnetNetworkIp), b=broadcastInt(subnetNetworkIp,prefix);
+      const first=(n+1)>>>0, last=(b-1)>>>0;
+      const target=(first + (ordinal1-1))>>>0;
+      if(target>last) throw new Error('Ordinal oltre il range di host usabili');
+      return intToIp(target);
+    }
+
+    function exactCidrForRange(startIp, endIp){
+      const a=ipToInt(startIp), z=ipToInt(endIp);
+      if(z<a) throw new Error('Intervallo non valido');
+      const size=(z-a+1)>>>0;
+      const isPow2=(size&(size-1))===0;
+      if(!isPow2) return null;
+      const prefix=32-Math.log2(size);
+      const aligned=(a & ((1<<(32-prefix))-1))===0;
+      if(!aligned) return null;
+      return { network:intToIp(a), prefix, mask:intToIp(maskFromPrefix(prefix)) };
+    }
+    function cidrCover(startIp, endIp){
+      let start=ipToInt(startIp), end=ipToInt(endIp);
+      if(end<start) throw new Error('Intervallo non valido');
+      const blocks=[];
+      while(start<=end){
+        let maxSize = start & -start;
+        let remain = (end - start + 1)>>>0;
+        while(maxSize>remain) maxSize>>=1;
+        const prefix = 32 - Math.log2(maxSize);
+        blocks.push({ network:intToIp(start), prefix, mask:intToIp(maskFromPrefix(prefix)) });
+        start = (start + maxSize)>>>0;
+      }
+      return blocks;
+    }
+
+    function flsmPlan(assignedNetIp, assignedPrefix, targetPrefix){
+      if(targetPrefix<assignedPrefix) throw new Error('targetPrefix deve essere ≥ assignedPrefix');
+      return subdivide(assignedNetIp, assignedPrefix, targetPrefix);
+    }
+
+    return {
+      ipToInt, intToIp, maskFromPrefix, prefixFromMask,
+      networkInt, broadcastInt, firstHostInt, lastHostInt,
+      totalAddresses, usableHosts, subnetInfo,
+      prefixForSubnets, prefixForHosts,
+      subdivide, nthSubnet, nthHostInSubnet,
+      exactCidrForRange, cidrCover, flsmPlan
+    };
+  })();
+  </script>
+
+  <!-- ====== FLSM-EXPLAIN (global: X) — DIDATTICO BINARIO (no Math.*) ====== -->
+  <script>
+  const X = (()=>{
+    const { ipToInt:intU, intToIp:u2ip, maskFromPrefix:mfp, usableHosts:usable, totalAddresses:total } = F;
+
+    // helpers binari (no Math)
+    function toBin8(n){ let s=''; for(let i=7;i>=0;i--) s += ((n>>>i)&1); return s; }
+    function toBin32(u){ return [ (u>>>24)&255,(u>>>16)&255,(u>>>8)&255,u&255 ].map(toBin8).join('.'); }
+    function pow2(exp){ let v=1>>>0; for(let i=0;i<exp;i++) v=(v<<1)>>>0; return v>>>0; }
+
+    // 1) Info subnet con AND/OR/NOT mostrati
+    function explainSubnetInfo(ip, prefix){
+      const steps=[];
+      const ipU = intU(ip);
+      const mask = mfp(prefix);
+      const notM = (~mask)>>>0;
+      const net = (ipU & mask)>>>0;
+      const bcast = (net | notM)>>>0;
+      const first = prefix>=31? net : (net+1)>>>0;
+      const last  = prefix>=31? bcast : (bcast-1)>>>0;
+
+      steps.push(`IP: ${ip}  (${toBin32(ipU)})`);
+      steps.push(`MASK /${prefix}: ${u2ip(mask)}  (${toBin32(mask)})`);
+      steps.push(`~MASK: (${toBin32(notM)})`);
+      steps.push(`NETWORK = IP & MASK → ${u2ip(net)}  (${toBin32(net)})`);
+      steps.push(`BROADCAST = NETWORK | ~MASK → ${u2ip(bcast)}  (${toBin32(bcast)})`);
+      if (prefix<=30){
+        steps.push(`FIRST = NETWORK + 1 → ${u2ip(first)}  (${toBin32(first)})`);
+        steps.push(`LAST  = BROADCAST - 1 → ${u2ip(last)}  (${toBin32(last)})`);
+      } else {
+        steps.push(`Prefisso /${prefix}: modello classico → nessun host usabile.`);
+      }
+      const tot = total(prefix), use = usable(prefix);
+      steps.push(`Indirizzi totali = 2^(32-${prefix}) = ${tot}  — Host usabili = ${use}`);
+
+      return { result:{
+        ip, prefix, mask:u2ip(mask),
+        network:u2ip(net), broadcast:u2ip(bcast),
+        firstHost:u2ip(first), lastHost:u2ip(last),
+        total:tot, usable:use
+      }, steps };
+    }
+
+    // 2) Prefisso per almeno N sottoreti (no Math)
+    function explainPrefixForSubnets(basePrefix, needed){
+      const steps=[];
+      let p=0, v=1; while(v<needed){ v=v<<1; p++; } // p = ceil(log2(needed))
+      const newP = basePrefix + p;
+      const blk = pow2(32-newP);
+      steps.push(`Bit subnet aggiunti: p tale che 2^p ≥ ${needed} → p=${p}`);
+      steps.push(`Nuovo prefisso: ${basePrefix}+${p} = /${newP}  → blocco = 2^(32-${newP}) = ${blk} indirizzi`);
+      return { result:{ newPrefix:newP, subnets:v, blockSize:blk }, steps };
+    }
+
+    // 3) Prefisso per ≥H host usabili (no Math)
+    function explainPrefixForHosts(h){
+      const steps=[];
+      let p=0; for(p=0;p<=32;p++){ if(usable(p)>=h) break; }
+      steps.push(`Trovo p minimo con 2^(32-p)-2 ≥ ${h} → p=${p}  (mask ${u2ip(mfp(p))})`);
+      return { result:{ prefix:p, mask:u2ip(mfp(p)) }, steps };
+    }
+
+    // 4) Subdivide con nota sui primi/ultimi blocchi
+    function explainSubdivide(baseNetIp, basePrefix, newPrefix){
+      const steps=[];
+      const baseNet = (intU(baseNetIp) & mfp(basePrefix))>>>0;
+      let cnt=1; for(let i=0;i<(newPrefix-basePrefix);i++) cnt=cnt<<1;
+      let blk=1; for(let i=0;i<(32-newPrefix);i++) blk=blk<<1;
+      steps.push(`Normalizzo: ${u2ip(baseNet)}/${basePrefix} → /${newPrefix}  (#subnet=2^${newPrefix-basePrefix}=${cnt}, blocco=${blk})`);
+
+      const list = F.subdivide(baseNetIp, basePrefix, newPrefix);
+      for(let i=0;i<list.length;i++){
+        if (i<3 || i===list.length-1){
+          const nU=intU(list[i].network), bU=intU(list[i].broadcast);
+          steps.push(`Subnet #${i+1}: NET=${list[i].network} (${toBin32(nU)}) → BCAST=${list[i].broadcast} (${toBin32(bU)})`);
+        }
+      }
+      return { result:list, steps };
+    }
+
+    // 5) Spiegazione didattica stile traccia (pattern S/H, M H K, sprechi, ecc.)
+    function explainFlsmPlanDidattico(assignedNetIp, assignedPrefix, targetPrefix, gruppi = [
+      { name:'M', hosts:700, subnetIndex:1 },
+      { name:'H', hosts:254, subnetIndex:2 },
+      { name:'K', hosts:60,  subnetIndex:3 },
+    ]){
+      const steps=[];
+      const baseU = (intU(assignedNetIp) & mfp(assignedPrefix))>>>0;
+
+      const subBits = (targetPrefix - assignedPrefix);
+      const hostBits = (32 - targetPrefix);
+      let sStr=''; for(let i=0;i<subBits;i++) sStr += 'S';
+      let hStr=''; for(let i=0;i<hostBits;i++) hStr += 'H';
+
+      // pattern “alla lavagna” (ottetti 1-2 fissi; 3° con S/H; 4° tutto H)
+      const a = (baseU>>>24)&255, b=(baseU>>>16)&255;
+      const patt3 = (sStr + hStr).padStart(8,'0').slice(0,8);
+      const patt4 = ''.padStart(8,'H');
+
+      const mask = mfp(targetPrefix);
+      let tot=1; for(let i=0;i<hostBits;i++) tot = tot<<1;  // 2^hostBits
+      const usablePer = (hostBits<=1)?0:(tot-2);
+
+      let subs=1; for(let i=0;i<subBits;i++) subs = subs<<1;
+
+      steps.push(`Rete assegnata: ${u2ip(baseU)}/${assignedPrefix}`);
+      steps.push(`Subnetting FLSM: /${targetPrefix}  ⇒ bit Subnet=${subBits}, bit Host=${hostBits}`);
+      steps.push(`Pattern: ${a}.${b}.${patt3}.${patt4}   (S=subnet, H=host)`);
+      steps.push(`Subnet totali: 2^${subBits} = ${subs}   —   Host usabili/subnet: 2^${hostBits}-2 = ${usablePer}`);
+      steps.push(`Maschera: ${u2ip(mask)} (/ ${targetPrefix})`);
+
+      const all = F.flsmPlan(assignedNetIp, assignedPrefix, targetPrefix);
+
+      steps.push(`\nNET-ID per ognuna (stile traccia):`);
+      gruppi.forEach(g=>{
+        const s = all[g.subnetIndex-1];
+        steps.push(`${g.name}  ${s.network}/${s.prefix}`);
+      });
+
+      steps.push(`\nIP BROADCAST per ognuna:`);
+      gruppi.forEach(g=>{
+        const s = all[g.subnetIndex-1];
+        steps.push(`${g.name}  ${s.broadcast}/${s.prefix}`);
+      });
+
+      steps.push(`\nIP GATEWAY (primo host) per ognuna:`);
+      gruppi.forEach(g=>{
+        const s = all[g.subnetIndex-1];
+        const gw = (intU(s.network)+1)>>>0;
+        steps.push(`${g.name}  ${u2ip(gw)}/${s.prefix}`);
+      });
+
+      steps.push(`\nN° indirizzi IP SPRECATI per sottorete:`);
+      let sprechiSomma = 0;
+      gruppi.forEach(g=>{
+        const necessari = (g.hosts + 1 + 2); // host + gateway + (net+bcast)
+        const sprecati = (tot - necessari);
+        sprechiSomma += sprecati;
+        steps.push(`${g.name}  /${targetPrefix} → Tot=${tot}  Necessari=${g.hosts}+1+2=${necessari}  Sprecati=${tot}-${necessari}=${sprecati}`);
+      });
+      steps.push(`Totale indirizzi IP sprecati (3 reti) = ${sprechiSomma}`);
+
+      const nonUsate = (subs - gruppi.length);
+      steps.push(`\nSubnet TOTALI SPRECATE = ${subs} − ${gruppi.length} = ${nonUsate}`);
+
+      const hostSprecati = sprechiSomma + (nonUsate * usablePer);
+      steps.push(`Host TOTALI SPRECATI = ${sprechiSomma} + ${nonUsate}×${usablePer} = ${hostSprecati}`);
+
+      const last = all[all.length-1];
+      const lastNetU = intU(last.network);
+      const ip260 = (lastNetU + 260)>>>0; // 260° indirizzo a partire dal NET (come in traccia)
+      steps.push(`\nUltima sottorete: ${last.network}/${last.prefix}`);
+      steps.push(`260° IP (dal NET come #1): NET + 260 → ${u2ip(ip260)}/${last.prefix}`);
+
+      return {
+        result: {
+          allSubnets: all,
+          usablePerSubnet: usablePer,
+          totalSubnets: subs,
+          wastedIpSumAssigned: sprechiSomma,
+          wastedSubnets: nonUsate,
+          wastedHostsTotal: hostSprecati,
+          ip260LastSubnet: u2ip(ip260),
+          targetPrefix
+        },
+        steps
+      };
+    }
+
+    return {
+      explainSubnetInfo,
+      explainPrefixForSubnets,
+      explainPrefixForHosts,
+      explainSubdivide,
+      explainFlsmPlanDidattico
+    };
+  })();
+  </script>
+
+  <!-- === INTEGRAZIONE UI === -->
+  <script>
+    const qs = (id) => document.getElementById(id);
+    const show = (el, v=true) => el.classList.toggle('hidden', !v);
+    const fmt = (obj) => Object.entries(obj).map(([k,v]) => `<div><span class="text-green-300/80">${k}:</span> ${v}</div>`).join('');
+    const err = (el, msg) => { el.textContent = msg; show(el, !!msg); };
+
+    // 1) Base
+    qs('btnBase').addEventListener('click', () => {
+      const ip = qs('baseIp').value.trim();
+      const pfx = parseInt(qs('basePrefix').value, 10);
+      const showSteps = qs('stepsBaseToggle').checked;
+      err(qs('baseError'), '');
+      try {
+        const { result, steps } = X.explainSubnetInfo(ip, pfx);
+        qs('baseSummary').innerHTML = fmt({ IP: result.ip, Network: result.network, Broadcast: result.broadcast, Total: result.total, Usable: result.usable });
+        qs('baseRange').textContent = `${result.firstHost} – ${result.lastHost}`;
+        qs('baseMask').textContent = `${result.mask} (/${result.prefix})`;
+        if (showSteps) { qs('baseSteps').textContent = steps.join('\n'); show(qs('baseStepsWrap'), true); }
+        else show(qs('baseStepsWrap'), false);
+      } catch (e) { err(qs('baseError'), e.message); }
+    });
+
+    // 2) FLSM per #sottoreti
+    qs('btnSub').addEventListener('click', () => {
+      const ip = qs('subBaseIp').value.trim();
+      const base = parseInt(qs('subBasePrefix').value, 10);
+      const n = parseInt(qs('subCount').value, 10);
+      const showSteps = qs('stepsSubToggle').checked;
+      err(qs('subError'), '');
+      try {
+        const { result: pf, steps: s1 } = X.explainPrefixForSubnets(base, n);
+        const { result: list, steps: s2 } = X.explainSubdivide(ip, base, pf.newPrefix);
+        qs('subHead').textContent = `Nuovo prefisso: /${pf.newPrefix} — Sottoreti generate: ${pf.subnets} — Blocchi: ${pf.blockSize} indirizzi (${F.usableHosts(pf.newPrefix)} host usabili)`;
+        qs('subTable').innerHTML = list.map(row => `
+          <tr class="bg-black/40 border border-green-900/40">
+            <td class="py-2 px-3">${row.index}</td>
+            <td class="py-2 px-3">${row.network}</td>
+            <td class="py-2 px-3">/${row.prefix}</td>
+            <td class="py-2 px-3">${row.broadcast}</td>
+            <td class="py-2 px-3">${row.firstHost}</td>
+            <td class="py-2 px-3">${row.lastHost}</td>
+            <td class="py-2 px-3">${row.usable}</td>
+          </tr>`).join('');
+        if (showSteps) { qs('subSteps').textContent = [...s1, ...s2].join('\n'); show(qs('subStepsWrap'), true); }
+        else show(qs('subStepsWrap'), false);
+      } catch (e) { err(qs('subError'), e.message); }
+    });
+
+    // 3) Prefisso da host + N-esimo host
+    qs('btnPH').addEventListener('click', () => {
+      const h = parseInt(qs('phHosts').value, 10);
+      try {
+        const { result } = X.explainPrefixForHosts(h);
+        qs('phOut').textContent = `/${result.prefix} (mask ${result.mask})`;
+      } catch (e) { qs('phOut').textContent = e.message; }
+    });
+    qs('btnNth').addEventListener('click', () => {
+      const baseIp = qs('nthBaseIp').value.trim();
+      const baseP = parseInt(qs('nthBasePrefix').value, 10);
+      const maybeNew = qs('nthNewPrefix').value.trim();
+      const subN = parseInt(qs('nthSubnet').value, 10);
+      const hostN = parseInt(qs('nthHost').value, 10);
+      err(qs('nthError'), '');
+      try {
+        const newP = maybeNew ? parseInt(maybeNew, 10) : F.prefixForSubnets(baseP, subN);
+        const sub = F.nthSubnet(baseIp, baseP, newP, subN);
+        const host = F.nthHostInSubnet(sub.network, newP, hostN);
+        qs('nthOut').innerHTML = `Subnet #${subN}: <span class="text-green-300">${sub.network}/${newP}</span><br>Host #${hostN}: <span class="text-green-300">${host}</span>`;
+      } catch (e) { err(qs('nthError'), e.message); }
+    });
+
+    // 4) Range → CIDR
+    qs('btnExact').addEventListener('click', () => {
+      const a = qs('rangeStart').value.trim();
+      const b = qs('rangeEnd').value.trim();
+      const showSteps = qs('stepsRangeToggle').checked;
+      err(qs('rangeError'), '');
+      try {
+        const r = F.exactCidrForRange(a,b);
+        const steps = [];
+        if (!r) {
+          qs('exactOut').innerHTML = `<span class="text-yellow-300">Nessun singolo CIDR rappresenta esattamente l'intervallo.</span>`;
+          if (showSteps) { qs('rangeSteps').textContent = `Intervallo: ${a} → ${b}\nNon è potenza di 2 e/o non allineato.`; show(qs('rangeStepsWrap'), true); }
+          else show(qs('rangeStepsWrap'), false);
+        } else {
+          qs('exactOut').innerHTML = `<span class="text-green-300">${r.network}/${r.prefix}</span> (mask ${r.mask})`;
+          // breve spiegazione binaria per coerenza
+          const aU = F.ipToInt(a), zU = F.ipToInt(b);
+          const toBin8 = n=>{let s='';for(let i=7;i>=0;i--) s+=((n>>>i)&1);return s;};
+          const toBin32 = u=>[(u>>>24)&255,(u>>>16)&255,(u>>>8)&255,u&255].map(toBin8).join('.');
+          steps.push(`Intervallo: ${a} (${toBin32(aU)}) → ${b} (${toBin32(zU)})`);
+          steps.push(`CIDR esatto: ${r.network}/${r.prefix} (mask ${r.mask})`);
+          if (showSteps) { qs('rangeSteps').textContent = steps.join('\n'); show(qs('rangeStepsWrap'), true); }
+          else show(qs('rangeStepsWrap'), false);
+        }
+      } catch (e) { err(qs('rangeError'), e.message); }
+    });
+    qs('btnCover').addEventListener('click', () => {
+      const a = qs('rangeStart').value.trim();
+      const b = qs('rangeEnd').value.trim();
+      err(qs('rangeError'), '');
+      try {
+        const { result } = (()=>{
+          // usiamo la cover di F e mostriamo blocchi
+          const blocks = F.cidrCover(a,b);
+          return { result: blocks };
+        })();
+        qs('coverOut').innerHTML = result.map(r => `<div>• ${r.network}/${r.prefix} <span class="text-green-300/70">(mask ${r.mask})</span></div>`).join('');
+      } catch (e) { err(qs('rangeError'), e.message); }
+    });
+
+    // 5) Piano FLSM (con procedura didattica)
+    qs('btnPlan').addEventListener('click', () => {
+      const ip = qs('planIp').value.trim();
+      const base = parseInt(qs('planBasePrefix').value, 10);
+      const target = parseInt(qs('planTargetPrefix').value, 10);
+      const showSteps = qs('stepsPlanToggle')?.checked;
+      err(qs('planError'), '');
+      try {
+        const { result: expl, steps } = X.explainFlsmPlanDidattico(ip, base, target);
+        const list = expl.allSubnets;
+
+        qs('planHead').textContent =
+          `Sottoreti totali: ${expl.totalSubnets} — Usable/subnet: ${expl.usablePerSubnet} — Mask: ${F.intToIp(F.maskFromPrefix(target))}`;
+
+        qs('planTable').innerHTML = list.slice(0,10).map(p => `
+          <tr class="bg-black/40 border border-green-900/40">
+            <td class="py-2 px-3">${p.index}</td>
+            <td class="py-2 px-3">${p.network}</td>
+            <td class="py-2 px-3">/${p.prefix}</td>
+            <td class="py-2 px-3">${p.mask}</td>
+            <td class="py-2 px-3">${p.broadcast}</td>
+            <td class="py-2 px-3">${p.gateway}</td>
+            <td class="py-2 px-3">${p.usable}</td>
+          </tr>
+        `).join('');
+
+        if (showSteps){
+          qs('planSteps').textContent = steps.join('\n');
+          show(qs('planStepsWrap'), true);
+        } else {
+          show(qs('planStepsWrap'), false);
+        }
+      } catch (e) {
+        err(qs('planError'), e.message);
+      }
+    });
+
+    // Auto-anteprima
+    ['btnBase','btnSub','btnPH','btnCover','btnPlan'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) setTimeout(() => el.click(), 60);
+    });
+  </script>
+</body>
+</html>
